@@ -9,7 +9,7 @@ Le but : infliger un maximum de dégâts avant la fin du huitième tour de jeu.
 Conception: 
 Huit slots de creatures ou autre permanent
 Huit cartes en main
-Huit mana a chaque tour - Cartes qui coutent de 1 a 5 (par exemple)
+Mana incremental selon la suite de Jacobstahl - Cartes qui coutent de 1 a 5 (par exemple)
 On selectionne dans l'ordre les cartes qu'on va jouer et les slots pour les creatures/permanents sont selectionnes, une fois jouees toutes les creatures attaquent automatiquement en face d'elle avec le pietinement
 A la fin du tour on peut defausser les cartes restantes ou les garder. Au debut du tour on repioche jusqu'a avoir 8
 
@@ -144,7 +144,6 @@ Chaque personnage possède :
 | **Éveillée** | Créature pouvant attaquer ou bloquer |
 | **Armure** | Absorbe les dégâts avant les PV, reset chaque tour |
 | **Pile** | File LIFO de résolution des instantanés |
-| **Fatigue** | Dégât subi quand le deck est vide |
 | **Cimetière** | Zone des cartes utilisées/détruites |
 | **Commun** | Carte disponible dans tous les decks |
 | **Exclusif** | Carte réservée à un personnage spécifique |
