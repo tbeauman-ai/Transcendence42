@@ -4,17 +4,25 @@
 
 Chaque joueur choisit un **personnage** (inspiré d'un développeur du jeu) avec son **deck pré-construit**.  
 Les decks sont composés de **cartes communes** (disponibles pour tous) et de **cartes exclusives** au personnage choisi.  
-Le but : réduire les **points de vie** de l'adversaire à 0.
+Le but : infliger un maximum de dégâts avant la fin du huitième tour de jeu.
 
+Conception: 
+Huit slots de creatures ou autre permanent
+Huit cartes en main
+Huit mana a chaque tour - Cartes qui coutent de 1 a 5 (par exemple)
+On selectionne dans l'ordre les cartes qu'on va jouer et les slots pour les creatures/permanents sont selectionnes, une fois jouees toutes les creatures attaquent automatiquement en face d'elle avec le pietinement
+A la fin du tour on peut defausser les cartes restantes ou les garder. Au debut du tour on repioche jusqu'a avoir 8
+
+Types de cartes : Creatures, Batiments, Sortileges
+64 cartes par deck
 ---
 
 ## 2. Les personnages
 
 Chaque personnage possède :
-- Des **points de vie** propres (variables selon le perso)
 - Un **passif unique** qui définit son style de jeu
 - Une valeur d'**armure de base** (peut être 0)
-- Un **deck de 30 cartes** pré-construit
+- Un **deck de 64 cartes** pré-construit avec 32 communes et 32 cartes specialisées
 
 ### L'armure
 - L'armure **absorbe les dégâts avant les PV**
