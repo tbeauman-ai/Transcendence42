@@ -12,9 +12,9 @@ services:
       - transcendance
     restart: unless-stopped
 
-  mariadb:
-    build: ./mariadb
-    container_name: mariadb
+  db:
+    build: ./mysql
+    container_name: mysql
     volumes:
       - db_data:/var/lib/mysql
     env_file:
@@ -29,7 +29,7 @@ services:
     volumes:
       - node_data:/var/www/nodejs
     depends_on:
-      - mariadb
+      - mysql
     networks:
       - transcendance
     restart: unless-stopped
