@@ -3,147 +3,173 @@
 ## 1. Concept général
 
 Chaque joueur choisit un **personnage** (inspiré d'un développeur du jeu) avec son **deck pré-construit**.  
-Les decks sont composés de **cartes communes** (disponibles pour tous) et de **cartes exclusives** au personnage choisi.  
-Le but : infliger un maximum de dégâts avant la fin du huitième tour de jeu.
+Les decks sont composés de **cartes communes** (disponibles pour tous) et de **cartes exclusives** au personnage choisi.
 
-Conception: 
-Huit slots de creatures ou autre permanent
-Huit cartes en main
-Mana incremental selon la suite de Jacobstahl - Cartes qui coutent de 1 a 5 (par exemple)
-On selectionne dans l'ordre les cartes qu'on va jouer et les slots pour les creatures/permanents sont selectionnes, une fois jouees toutes les creatures attaquent automatiquement en face d'elle avec le pietinement
-A la fin du tour on peut defausser les cartes restantes ou les garder. Au debut du tour on repioche jusqu'a avoir 8
+Le but : **infliger le maximum de dégâts directs** à l'adversaire avant la fin du **8ème tour**.  
+Le joueur ayant infligé le plus de dégâts directs au joueur adverse remporte la partie.
 
-Types de cartes : Creatures, Batiments, Sortileges
-64 cartes par deck
 ---
 
 ## 2. Les personnages
 
 Chaque personnage possède :
+- Des **points de vie** propres (variables selon le perso) — utilisés uniquement pour encaisser les dégâts directs
 - Un **passif unique** qui définit son style de jeu
-- Une valeur d'**armure de base** (peut être 0)
-- Un **deck de 64 cartes** pré-construit avec 32 communes et 32 cartes specialisées
-
-### L'armure
-- L'armure **absorbe les dégâts avant les PV**
-- Elle se **réinitialise au début de chaque tour** du joueur à sa valeur de base
-- Certaines cartes peuvent **générer de l'armure temporaire** en plus (s'ajoute à la valeur de base jusqu'au prochain reset)
-- Elle n'a pas de plafond, mais les valeurs générées par les cartes doivent rester raisonnables
-
-> **Exemple :** Un perso avec 1 armure de base subit 3 dégâts → il perd 1 armure et 2 PV. Au début de son prochain tour, son armure repasse à 1.
+- Un **deck de 64 cartes** pré-construit
 
 ### Exemples de passifs
-| Personnage | PV | Armure de base | Passif |
-|---|---|---|---|
-| Le Tank | 30 | 2 | +3 armure au début de chaque tour |
-| Le Glass Cannon | 20 | 0 | Ses creatures gagnent +1/+0 |
-| Le Druide | 25 | 1 | Gagne 1 mana supplementaire au debut du match |
-| *(à définir)* | ... | ... | ... |
+| Personnage | PV | Passif |
+|---|---|---|
+| Le Tank | 60 | Ses créatures ont +0/+2 |
+| Le Glass Cannon | 30 | Ses créatures ont +2/+0 |
+| Le Support | 45 | Pioche 1 carte supplémentaire par tour |
+| *(à définir)* | ... | ... |
 
 ---
 
-## 3. Les ressources — Le Mana
-
-- Chaque joueur commence avec **1 mana** au tour 1
-- Le **mana maximum augmente de 1 par tour**, sans maximum
-- Le mana se **reinitialise automatiquement** au début de chaque tour
-- Le mana non utilisé **ne se conserve pas** pendant le tour de l'adversaire.
-
----
-
-## 4. Le deck
+## 3. Le deck
 
 | Paramètre | Valeur |
 |---|---|
-| Taille du deck | 30 cartes |
+| Taille du deck | 64 cartes |
 | Copies max par carte | 2 |
-| Main de départ | 6 cartes |
-| Limite de main | 10 cartes |
-| Pioche par tour | 1 carte |
+| Main de départ | 8 cartes |
+| Limite de main | 8 cartes |
+| Pioche par tour | Jusqu'à 8 cartes |
 
-- Si un joueur doit piocher mais que son deck est vide → il perds la partie
-- Si la main est pleine (10 cartes) et qu'une carte doit être piochée → elle est **retiree de la partie**
+- Au début de chaque tour, le joueur **repioche jusqu'à avoir 8 cartes** en main (si 3 cartes gardées → pioche 5)
+- Si le deck est vide, il ne se passe rien — le joueur joue simplement avec ce qu'il a en main
+- **Aucune fatigue**, aucune défaite par deck vide
 
 ---
 
-## 5. Les types de cartes
+## 4. Le mana
+
+- Chaque joueur dispose d'un mana incremental suivant la suite de Fibonacci :
+1 1 2 3 5 8 13 21
+- Le mana **s'accumule** d'un tour à l'autre
+- Les cartes coûtent entre **1 et 5 mana**
+
+---
+
+## 5. Le terrain
+
+Le terrain de chaque joueur comporte **8 slots numérotés de 1 à 8**.
+
+```
+Joueur A : [ 1 ][ 2 ][ 3 ][ 4 ][ 5 ][ 6 ][ 7 ][ 8 ]
+           ───────────────────────────────────────────
+Joueur B : [ 1 ][ 2 ][ 3 ][ 4 ][ 5 ][ 6 ][ 7 ][ 8 ]
+```
+
+- Chaque slot peut contenir **une seule carte permanente** (créature ou bâtiment)
+- Les créatures et bâtiments **persistent entre les tours** jusqu'à leur destruction
+- Le joueur choisit **dans quel slot** placer sa carte
+
+---
+
+## 6. Les types de cartes
 
 ### 🧙 Créatures
 - Ont une valeur d'**Attaque** et de **Défense**
-- Arrivent sur le terrain avec un **tour de sommeil** (ne peuvent pas attaquer le tour où elles sont posées, elles peuvent bloquer)
-- Se **réveillent au début du tour suivant** du joueur
-- Restent sur le terrain jusqu'à leur mort (Défense à 0)
-- Les dégâts subis **ne persistent pas entre les tours** (régénération automatique)
+- Combattent automatiquement en fin de tour (voir section Combat)
+- Restent sur le terrain jusqu'à leur destruction (Défense à 0)
+- Les dégâts subis **persistent entre les tours** (pas de régénération)
 
-### 🔮 Sorts (Éphémères)
-- Jouables **uniquement pendant son propre tour**
-- Résolution **immédiate**, sans pile
-- Effets variés : dégâts, soins, buff de créatures, génération d'armure...
+### 🏰 Bâtiments
+- Occupent un slot parmi les 8
+- Ont un **effet passif** permanent tant qu'ils sont en jeu
+- Sont **transparents** pour les créatures : ignorés lors du combat (la créature en face attaque directement le joueur si le slot adverse ne contient qu'un bâtiment)
+- Peuvent être détruits par certains sorts ou effets de cartes
+
+### 🔮 Sortilèges
+- Jouables **pendant la phase de planification**
+- Effet **immédiat**, puis vont au cimetière
+- Effets variés : dégâts, buff de créatures, destruction de permanents, etc.
 
 ---
 
-## 6. Le déroulement d'un tour
+## 7. Le déroulement d'un tour
+
+Les deux joueurs agissent **simultanément** — aucun joueur ne voit ce que joue l'adversaire pendant la phase de planification.
 
 ```
 1. DÉBUT DE TOUR
-   ├── Réinitialisation de l'armure à sa valeur de base
-   ├── +1 mana maximum (si < 10)
-   ├── Régénération du mana
-   ├── Pioche d'1 carte
-   └── Réveil des créatures posées au tour précédent
+   ├── Repioche jusqu'à 8 cartes en main
+   └── 8 mana disponibles
 
-2. PHASE PRINCIPALE
-   ├── Jouer des cartes (créatures, sorts)
-   ├── Déclarer des attaques avec les créatures éveillées
-   └── Jouer des cartes (l'adversaire peut répondre)
+2. PHASE DE PLANIFICATION (simultanée)
+   ├── Chaque joueur choisit les cartes à jouer et dans quel ordre
+   ├── Pour les créatures et bâtiments : choisir le slot de destination
+   ├── Pour les sortilèges : choisir la cible
+   └── Le joueur valide son plan (les cartes ne sont pas encore jouées)
 
-3. FIN DE TOUR
-   └── Le joueur declare la fin de son tour
+3. RÉSOLUTION (simultanée et ordonnée)
+   ├── Les cartes se jouent dans l'ordre choisi par chaque joueur
+   ├── Les effets s'appliquent immédiatement
+   └── Les créatures/bâtiments occupent leurs slots
+
+4. COMBAT AUTOMATIQUE
+   └── (voir section Combat)
+
+5. FIN DE TOUR
+   ├── Le joueur choisit quelles cartes garder en main (0 à 8)
+   └── Les cartes non gardées sont défaussées
 ```
 
 ---
 
-## 7. Le combat
+## 8. Le combat
 
-### Déclarer une attaque
-- Seules les créatures **éveillées** peuvent attaquer
-- Une créature ne peut attaquer **qu'une fois par tour**
-- Les créatures attaquent **directement le joueur adverse** par défaut
+Le combat est **entièrement automatique** et se déroule après la phase de résolution.
 
-### Le blocage
-- Le joueur défenseur peut **déclarer des bloqueurs** parmi ses créatures éveillées
-- **Plusieurs créatures** peuvent bloquer une même créature attaquante
-- Une créature ne peut bloquer **qu'une attaque par tour**
+### Résolution du combat slot par slot
 
-### Résolution du combat
-- Si une créature est bloquée par **plusieurs créatures**, l'attaquant répartit ses dégâts entre les bloqueurs
-- Les dégâts sont **simultanés** : attaquant et bloqueur se blessent mutuellement
-- Une créature dont la **Défense tombe à 0** est envoyée au **cimetière**
-- Les dégâts excédentaires ne se **reportent pas** sur le joueur (sauf effet de carte spécifique)
+Chaque slot est résolu **indépendamment** :
 
-> **Exemple :** Une créature 3/2 attaque. L'adversaire bloque avec une créature 1/4. La 3/2 inflige 3 dégâts → la 1/4 devient une 1/1. La 1/4 inflige 1 dégât → la 3/2 devient une 3/1. Les deux survivent.
+- **Créature vs Créature** : les deux se blessent mutuellement (dégâts simultanés). Si une créature tombe à 0 DEF → cimetière. Les dégâts excédentaires **passent sur le joueur adverse** (piétinement).
+- **Créature vs Bâtiment** : le bâtiment est transparent — la créature inflige ses dégâts **directement au joueur adverse**
+- **Créature vs Vide** : la créature inflige ses dégâts **directement au joueur adverse**
+- **Bâtiment vs n'importe quoi** : le bâtiment n'attaque pas, il est ignoré
+
+### Piétinement (Trample)
+Les dégâts excédentaires passent sur le joueur adverse.
+
+> **Exemple :** Une créature 5/3 affronte une créature 2/2. La 5/3 inflige 5 dégâts → 2 détruisent la créature adverse, **3 passent sur le joueur adverse**. La 2/2 inflige 2 dégâts → la 5/3 devient une 5/1.
+
+### Seuls les dégâts directs au joueur comptent pour le score
+Les dégâts infligés aux créatures adverses **ne comptent pas** dans le total de score.
 
 ---
 
-## 8. Conditions de victoire et défaite
+## 9. Le score
+
+- Chaque point de dégât infligé **directement au joueur adverse** s'ajoute au score de l'attaquant
+- À la fin du **tour 8**, le joueur avec le **score le plus élevé** remporte la partie
+- En cas d'égalité → **match nul**
+
+---
+
+## 10. Conditions de fin de partie
 
 | Condition | Résultat |
 |---|---|
-| PV adversaire à 0 | Victoire |
-| PV propres à 0 | Défaite |
-| Deck vide + fatigue | Défaite progressive |
-| Abandon | Défaite immédiate |
+| Fin du tour 8 | Victoire du joueur avec le score le plus élevé |
+| Égalité de score | Match nul |
+
+> Il n'y a **pas de défaite anticipée** par PV à 0 — un joueur peut encaisser plus de dégâts que ses PV sans perdre la partie. Les PV servent uniquement de **référence de robustesse** du personnage.
 
 ---
 
-## 9. Glossaire
+## 11. Glossaire
 
 | Terme | Définition |
 |---|---|
-| **Sommeil** | État d'une créature posée ce tour, ne peut pas agir |
-| **Éveillée** | Créature pouvant attaquer ou bloquer |
-| **Armure** | Absorbe les dégâts avant les PV, reset chaque tour |
-| **Pile** | File LIFO de résolution des instantanés |
+| **Slot** | Emplacement numéroté sur le terrain (1 à 8) |
+| **Transparent** | Un bâtiment est ignoré lors du combat |
+| **Piétinement** | Dégâts excédentaires transmis au joueur adverse |
+| **Score** | Total des dégâts directs infligés au joueur adverse |
+| **Permanent** | Carte qui reste sur le terrain (créature ou bâtiment) |
 | **Cimetière** | Zone des cartes utilisées/détruites |
 | **Commun** | Carte disponible dans tous les decks |
 | **Exclusif** | Carte réservée à un personnage spécifique |
