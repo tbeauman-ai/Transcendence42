@@ -78,7 +78,7 @@ local      basique   joueur     users     making
 ## Phase 5 — Matchmaking
 **Objectif : trouver un adversaire automatiquement**
 
-- [ ] File d'attente de matchmaking (Redis pour la gestion temps réel)
+- [ ] File d'attente de matchmaking
 - [ ] Système de ranking (ELO ou MMR simple)
 - [ ] Appariement par niveau (éviter les déséquilibres)
 - [ ] Modes de jeu : Classé / Non classé / Amis
@@ -109,7 +109,7 @@ local      basique   joueur     users     making
 | Frontend | React + Vite + PixiJS (optionnel) |
 | Backend | Node.js + Fastify |
 | Temps réel | Socket.io |
-| Base de données | PostgreSQL + Redis |
+| Base de données | PostgreSQL |
 | Auth | JWT + OAuth (Discord / Google) |
 | Hébergement | Fly.io / Railway / Render |
 | CI/CD | GitHub Actions |
