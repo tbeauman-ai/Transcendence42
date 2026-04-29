@@ -19,5 +19,27 @@ app.get('/', (req, res) => {
 
 // Ecoute sur le port 3000
 app.listen(3000, () => {
+  game = instantiateGame();
+  while (game.turnNumber < 8) {
+    for (player in game.players) {
+      startTurn(player);
+    }
+    const curr_time = Date.now();
+    const elapsed = 0;
+    while (elapsed < game.clock_per_turn){
+      playerSelectCards();
+      elapsed = Date.now() - curr_time;
+    }
+    for each selected card {
+      playCard(Card, params);
+      checkBoardState(); // pour mettre les creas au cimetiere
+    }
+    resolveBuildings(game);
+    checkBoardState(); // pour mettre les creas au cimetiere
+    resolveCombat(game);
+    checkBoardState(); // pour mettre les creas au cimetiere
+    game.turnNumber += 1;
+  }
+  checkVictory();
   console.log('Server running on port 3000')
 })

@@ -18,25 +18,20 @@ function startTurn(player: Hero, game: Game): void {
     playerDraw(player, 8 - player.hand.length)
 }
 
-function playCard(card: Card) {
-    /*HELP
-    card.owner.hand.pop(card);
-    if (card.type == "batiment" | card.type == "creature")
+function playCard(card: Card, zone?: Zone, target?: Hero | Card, target2?: Card) {
+    card.owner.hand = card.owner.hand.filter(c => c.idInGame !== card.idInGame);
+    if (card.type == "batiment" || card.type == "creature")
     {
-        zone = ask(card.owner);
         card.zone = zone;
-        card.owner.battlefield[zone] = card;
+        card.owner.battlefield[zone!] = card;
     }
-    for effect in card.effects {
-        target = ask(card.owner);
+    for (effect in card.effects) {
         if (effect.effect === "swap"){
-            target2?= ask(card.owner)
             resolveEffect(card, target, target2);
         }
         else
             resolveEffect(card, target);
     }
-    */
 }
 // p1 deals to p2
 function dealsDmg(player1: Hero, player2: Hero, x: number): void
@@ -54,55 +49,56 @@ function dealsDmg(player1: Hero, player2: Hero, x: number): void
 }
 
 function resolveCombat(game: Game) {
-    // for zone in Zone {
-    //     const card0 = game.players[0].battleground[zone].card;
-    //     const card1 = game.players[1].battleground[zone].card;
-    //     if (card0.type == "creature" && card1.type == "creature"){
-            
-    //         // 1 tabasse 0
-    //         if (card0.currEndurance - card1.currForce > 0)
-    //             card0.currEndurance -= card1.currForce
-    //         else if (card0.currEndurance - card1.currForce === 0)
-    //             card0.zone = "graveyard";
-    //         else
-    //         {
-    //             card0.zone = "graveyard";
-    //             dealsDmg(card1.owner, game.players[0], card1.currForce - card0.currEndurance);
-    //         }
+    for zone in Zone {
+        const card0 = game.players[0].battleground[zone].card;
+        const card1 = game.players[1].battleground[zone].card;
+        if (card0.type == "creature" && card1.type == "creature"){
+            // 1 tabasse 0
+            if (card0.currEndurance - card1.currForce > 0)
+                card0.currEndurance -= card1.currForce
+            else if (card0.currEndurance - card1.currForce === 0)
+                card0.zone = "graveyard";
+            else {
+                card0.zone = "graveyard";
+                dealsDmg(card1.owner, game.players[0], card1.currForce - card0.currEndurance);
+            }
 
-    //         // 0 tabasse 1
-    //         if (card1.currEndurance - card0.currForce > 0)
-    //             card1.currEndurance -= card0.currForce
-    //         else if (card1.currEndurance - card0.currForce === 0)
-    //             card0.zone = "graveyard";
-    //         else
-    //         {
-    //             card0.zone = "graveyard";
-    //             dealsDmg(card0.owner, game.players[1], card0.currForce - card1.currEndurance);
-    //         }
-    //     }
-    //     if (card0.type == "batiment" && card1.type == "creature"){
-    //         game.players[0].dmgDealt += card1.currForce
-    //         for eff in card0.effects {
-    //             resolveEffect(eff, target = ask(player[0]), target2?= ask(player[0]));
-    //         }
-    //     }
-    //     if (card1.type == "batiment" && card0.type == "creature"){
-    //         game.players[0].dmgDealt += card0.currForce
-    //         for eff in card1.effects {
-    //             resolveEffect(eff, target = ask(player[1]), target2?= ask(player[1]));
-    //         }
-    //     }
-    //     if (card0.type == "batiment" && card1.type == "batiment"){
-    //         for eff in card0.effects {
-    //             resolveEffect(eff, target = ask(player[0]), target2?= ask(player[0]));
-    //         }
-    //         for eff in card1.effects {
-    //             resolveEffect(eff, target = ask(player[1]), target2?= ask(player[1]));
-    //         }
-    //     }
-    // }
-    // HELP
+            // 0 tabasse 1
+            if (card1.currEndurance - card0.currForce > 0)
+                card1.currEndurance -= card0.currForce
+            else if (card1.currEndurance - card0.currForce === 0)
+                card0.zone = "graveyard";
+            else
+            {
+                card0.zone = "graveyard";
+                dealsDmg(card0.owner, game.players[1], card0.currForce - card1.currEndurance);
+            }
+        }
+        if (card0.type == "batiment" && card1.type == "creature"){
+            game.players[0].dmgDealt += card1.currForce
+            for eff in card0.effects {
+                resolveEffect(eff, target = ask(player[0]), target2?= ask(player[0]));
+            }
+        }
+        if (card1.type == "batiment" && card0.type == "creature"){
+            game.players[0].dmgDealt += card0.currForce
+            for eff in card1.effects {
+                resolveEffect(eff, target = ask(player[1]), target2?= ask(player[1]));
+            }
+        }
+        if (card0.type == "batiment" && card1.type == "batiment"){
+            for eff in card0.effects {
+                resolveEffect(eff, target = ask(player[0]), target2?= ask(player[0]));
+            }
+            for eff in card1.effects {
+                resolveEffect(eff, target = ask(player[1]), target2?= ask(player[1]));
+            }
+        }
+    }
+}
+
+function resolveBuildings(game:Game) {
+    
 }
 
 function resolveEffect(player: Hero, eff: Effect, target: Hero | Card, target2?: Card): boolean { //succes or failure
@@ -131,7 +127,6 @@ function resolveEffect(player: Hero, eff: Effect, target: Hero | Card, target2?:
                 if (target.currEndurance < 0)
                 {
                     target.zone = "graveyard"
-
                 }
             }
             break;
@@ -189,5 +184,5 @@ function checkVictory(game: Game) {
 //         }
 //         display wins
 //     }
-// }
+}
         // HELP
