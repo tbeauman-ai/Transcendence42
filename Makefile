@@ -22,7 +22,7 @@ logs:
 clean:
 	docker compose down -v
 
-fclean:
+fclean: clean
 	docker system prune -af
 
 re: fclean build
