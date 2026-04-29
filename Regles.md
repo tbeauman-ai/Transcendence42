@@ -113,8 +113,7 @@ Les deux joueurs agissent **simultanément** — aucun joueur ne voit ce que jou
    └── (voir section Combat)
 
 5. FIN DE TOUR
-   ├── Le joueur choisit quelles cartes garder en main (0 à 8)
-   └── Les cartes non gardées sont défaussées
+   ├── Il se passe rien
 ```
 
 ---

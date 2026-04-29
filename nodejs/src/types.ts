@@ -1,12 +1,8 @@
-import { createDecipheriv } from "node:crypto";
-import { title } from "node:process"
-import { zstdCompressSync } from "node:zlib";
-
 type CardType = "creature" | "sortilege" | "batiment";
 
 type CreatureState = "sick" | "ready";
 
-type CardOwner = "common" | "Warrior" | "Druid";
+type CardClass = "common" | "Warrior" | "Druid";
 
 type    Zone = 
 | "bf1"
@@ -21,46 +17,69 @@ type    Zone =
 | "library"
 | "graveyard";
 
-type Effects = {
-    Card            affectedCards[];
-    type Effect = "ad" | "def" | "draw" | "dmg" | "armor" | "mana" | "swap" | "destroy";
-    int             value;
-    int             value2;
+type EffectType = 
+| "ad_mod" 
+| "def_mod" 
+| "draw" 
+| "dmg" 
+| "armor" 
+| "mana" 
+| "swap" 
+| "destroy";
+
+
+type Effect = {
+    /* A changer, quand on definit une carte on veut pas mettre les cibles dans les effets, ca se fait a la resolution
+    affectedCards: Card[];
+    swapa: Card;
+    swapb: Card;
+    */
+
+    effect: EffectType;
+    value: number;
 }
 
 type Card = {
-    int         runeCost;
-    Effects     effects[];
-    string      cardName;
-    CardType    type;
-    CardOwner   owner;
-    int         idInCollection;
-    int         idInGame;
-    Zone        zone;
-    Image       fullPic; // la carte qu'on voit dans la collection ou dans la main
-    Image       smallPic; // la miniature sur le board
-    Image       cardBack; // la sleeve
-    int         baseForce;
-    int         currForce;
-    int         baseEndurance;
-    int         currEndurance;
+    kind: "card";
+    zone: Zone;
+    effects: Effect[];
+    type: CardType;
+    class: CardClass;
+    owner: Hero;
+    state: CreatureState;
+    runeCost: number;
+    idInCollection: number;
+    idInGame: number;
+    baseForce: number;
+    currForce: number;
+    baseEndurance: number;
+    currEndurance: number;
+    cardName: string;
+    fullPicPath: string; // la carte qu'on voit dans la collection ou dans la main
+    smallPicPath: string; // la miniature sur le board
+    cardBackPath: string; // la sleeve
 };
 
 type Hero = {
-    int         armor;
-    Effects     passive;
-    int         dmgDealt;
-    int         curRunes;
-    Card        battlefield[8];
-    Card        library[];
-    Card        graveyard[];
-    Card        hand[];
-    Image       heroPic;
+    kind: "hero";
+    passive: Effect;
+    armor: number;
+    dmgDealt: number;
+    curRunes: number;
+    battlefield: Partial<Record<Zone, Card>>;
+    library: Card[];
+    graveyard: Card[];
+    hand: Card[];
+    heroPicPath: string;
 };
 
-type Game {
-    int         turnNumber;
-    time_t      clock_per_turn;
-    Hero        Players[];
-    Image       background;
+type GamePhase = "beginning" | "main" | "resolve" 
+
+type Game = {
+    kind: "game";
+    phase: GamePhase;
+    turnNumber: number;
+    clock_per_turn: number;
+    players: Hero[];
+    backgroundPath: string;
 };
