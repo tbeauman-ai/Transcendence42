@@ -27,11 +27,11 @@ app.listen(3000, () => {
     const curr_time = Date.now();
     const elapsed = 0;
     while (elapsed < game.clock_per_turn){
-      playerSelectCards();
+      selectedCards.push(playerSelectCards());
       elapsed = Date.now() - curr_time;
     }
-    for each selected card {
-      playCard(Card, params);
+    for (const card of selectedCards) {
+      playCard(card, params);
       checkBoardState(); // pour mettre les creas au cimetiere
     }
     resolveBuildings(game);

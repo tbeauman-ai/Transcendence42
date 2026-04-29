@@ -1,4 +1,4 @@
-type CardType = "creature" | "sortilege" | "batiment";
+type CardType = "creature" | "sortilege" | "building";
 
 type CreatureState = "sick" | "ready";
 
@@ -27,6 +27,14 @@ type EffectType =
 | "swap" 
 | "destroy";
 
+type EffectTarget = 
+| "self_hero"       
+| "opponent_hero"  
+| "self"          
+| "left_neighbor" 
+| "right_neighbor"
+| "all_allies"
+| "all_enemies";
 
 type Effect = {
     /* A changer, quand on definit une carte on veut pas mettre les cibles dans les effets, ca se fait a la resolution
@@ -37,6 +45,7 @@ type Effect = {
 
     effect: EffectType;
     value: number;
+    target: EffectTarget;
 }
 
 type Card = {
@@ -62,6 +71,7 @@ type Card = {
 
 type Hero = {
     kind: "hero";
+    class: CardClass;
     passive: Effect;
     armor: number;
     dmgDealt: number;

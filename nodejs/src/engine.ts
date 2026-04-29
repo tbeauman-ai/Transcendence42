@@ -20,17 +20,20 @@ function startTurn(player: Hero, game: Game): void {
 
 function playCard(card: Card, zone?: Zone, target?: Hero | Card, target2?: Card) {
     card.owner.hand = card.owner.hand.filter(c => c.idInGame !== card.idInGame);
-    if (card.type == "batiment" || card.type == "creature")
+    if (card.type == "building" || card.type == "creature")
     {
-        card.zone = zone;
-        card.owner.battlefield[zone!] = card;
-    }
-    for (effect in card.effects) {
-        if (effect.effect === "swap"){
-            resolveEffect(card, target, target2);
+        if (zone)
+        {
+            card.zone = zone;
+            card.owner.battlefield[zone!] = card;
         }
-        else
-            resolveEffect(card, target);
+    }
+    for (const effect of card.effects) {
+        if (effect.effect === "swap" && target){
+            resolveEffect(card.owner, effect, target, target2);
+        }
+        else if (target)
+            resolveEffect(card.owner, effect, target);
     }
 }
 // p1 deals to p2
@@ -49,56 +52,111 @@ function dealsDmg(player1: Hero, player2: Hero, x: number): void
 }
 
 function resolveCombat(game: Game) {
-    for zone in Zone {
-        const card0 = game.players[0].battleground[zone].card;
-        const card1 = game.players[1].battleground[zone].card;
-        if (card0.type == "creature" && card1.type == "creature"){
+    for (let i = 1; i <= 8 ; i++) {
+        const zone = `bf${i}` as Zone;
+        const card0 = player.battlefield[zone];
+        const card1 = game.players[1].battlefield[zone];
+        if (card0 === undefined) {
+            if (card1 === undefined)
+                continue;
+            else if (card1.type === "creature")
+                dealsDmg(card1.owner, game.players[0], card1.currForce);
+        }
+        else if (card1 === undefined) {
+            if (card0.type === "creature")
+                dealsDmg(card0.owner, game.players[0], card0.currForce);
+        }
+        else if (card0.type == "creature" && card1.type == "creature"){
             // 1 tabasse 0
             if (card0.currEndurance - card1.currForce > 0)
                 card0.currEndurance -= card1.currForce
-            else if (card0.currEndurance - card1.currForce === 0)
-                card0.zone = "graveyard";
-            else {
-                card0.zone = "graveyard";
+            else
                 dealsDmg(card1.owner, game.players[0], card1.currForce - card0.currEndurance);
-            }
-
             // 0 tabasse 1
             if (card1.currEndurance - card0.currForce > 0)
                 card1.currEndurance -= card0.currForce
-            else if (card1.currEndurance - card0.currForce === 0)
-                card0.zone = "graveyard";
             else
-            {
-                card0.zone = "graveyard";
                 dealsDmg(card0.owner, game.players[1], card0.currForce - card1.currEndurance);
-            }
         }
-        if (card0.type == "batiment" && card1.type == "creature"){
+        else if (card1.type == "creature"){
             game.players[0].dmgDealt += card1.currForce
-            for eff in card0.effects {
-                resolveEffect(eff, target = ask(player[0]), target2?= ask(player[0]));
-            }
         }
-        if (card1.type == "batiment" && card0.type == "creature"){
+        else if (card0.type == "creature"){
             game.players[0].dmgDealt += card0.currForce
-            for eff in card1.effects {
-                resolveEffect(eff, target = ask(player[1]), target2?= ask(player[1]));
-            }
-        }
-        if (card0.type == "batiment" && card1.type == "batiment"){
-            for eff in card0.effects {
-                resolveEffect(eff, target = ask(player[0]), target2?= ask(player[0]));
-            }
-            for eff in card1.effects {
-                resolveEffect(eff, target = ask(player[1]), target2?= ask(player[1]));
-            }
         }
     }
 }
 
 function resolveBuildings(game:Game) {
-    
+    for (let i = 1 ; i <= 8; i++)
+    {
+        const zone = `bf${i}` as Zone;
+        for (const player of game.players)
+            {
+            const card0 = player.battlefield[zone];
+            if (card0 && card0.type === "building") {
+                for (const effect of card0.effects){
+                    switch (effect.target) {
+                        case "self_hero":
+                            resolveEffect(player, effect, player);
+                            break;       
+                        case "opponent_hero":
+                            for (const oppo of game.players)
+                            {
+                                if (oppo === player)
+                                    resolveEffect(player, effect, oppo);
+                            }
+                            break;  
+                        case "self":
+                            resolveEffect(player, effect, card0);
+                            break;          
+                        case "left_neighbor":
+                            if (i === 1)
+                                break;
+                            const zoneLeftTarget = `bf${i - 1}` as Zone;
+                            const leftTarget = player.battlefield[zoneLeftTarget];
+                            if (leftTarget)
+                                resolveEffect(player, effect, leftTarget);
+                            break; 
+                        case "right_neighbor":
+                            if (i === 8)
+                                break;
+                            const zoneRightTarget = `bf${i + 1}` as Zone;
+                            const rightTarget = player.battlefield[zoneRightTarget];
+                            if (rightTarget)
+                                resolveEffect(player, effect, rightTarget);
+                            break;
+                        case "all_allies":
+                            for (let j = 1 ; j <= 8; j++)
+                            {
+                                if (j === i)
+                                    continue;
+                                const nezo = `bf${i}` as Zone;
+                                const ally = player.battlefield[nezo];
+                                if (ally)
+                                    resolveEffect(player, effect, ally);
+                            }
+                            break;
+                        case "all_enemies":
+                            for (let j = 1 ; j <= 8; j++)
+                            {
+                                const enemyzone = `bf${i}` as Zone;
+                                for (const oppo of game.players){
+                                    if (oppo === player)
+                                        continue;
+                                    const enemy = oppo.battlefield[enemyzone];
+                                    if (enemy)
+                                        resolveEffect(oppo, effect, enemy);
+
+                                }
+                            }
+                            break;
+                    }
+                }
+            }
+        }
+
+        }
 }
 
 function resolveEffect(player: Hero, eff: Effect, target: Hero | Card, target2?: Card): boolean { //succes or failure
@@ -150,9 +208,7 @@ function resolveEffect(player: Hero, eff: Effect, target: Hero | Card, target2?:
         case "destroy":
             if (target.kind === "hero")
                 return false;
-            // HELP
-            // target.owner.battlefield[zone] = undefined
-            target.zone = "graveyard";
+            target.currEndurance = 0;
             break;
     }
 
@@ -160,29 +216,40 @@ function resolveEffect(player: Hero, eff: Effect, target: Hero | Card, target2?:
 }
 
 function checkVictory(game: Game) {
-//     let max = 0;
-//     let draw = 0;
-//     for player in game.players {
-//         if (max === player.dmgDealt)
-//             draw = 1;
-//         if (max < player.dmgDealt)
-//             max = player.dmgDealt
-//     }
-//     if (draw){
-//         draw between
-//         for each player {
-//             if max === player.dmgDealt
-//                 display player.nickname
-//         }
-//     }
-//     else    
-
-//     {
-//             for each player {
-//             if (max === player . dmgDealt)
-//                 display player
-//         }
-//         display wins
-//     }
+    let max = 0;
+    let draw = false;
+    for (const player of game.players) {
+        if (max === player.dmgDealt)
+            draw = true;
+        if (max < player.dmgDealt)
+            max = player.dmgDealt
+    }
+    if (draw){
+        console.log("draw between ")
+        for (const player of game.players) {
+            if (max === player.dmgDealt)
+                console.log(player.class);
+        }
+    }
+    else    
+    {
+        for (const player of game.players) {
+            if (max === player.dmgDealt)
+                console.log(player.class);
+        }
+        console.log(" wins");
+    }
 }
-        // HELP
+
+function    checkBoardState(game: Game) {
+    for (let i = 1 ; i<= 8 ; i++) {
+        const zone = `bf${i}` as Zone;
+        for (const player of game.players) {
+            const card = player.battlefield[zone];
+            if (card && card.type == "creature" && card.currEndurance <= 0) {
+                card.zone = "graveyard";
+                player.battlefield[zone] = undefined;
+            }
+        }
+    }
+}
