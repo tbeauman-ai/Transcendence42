@@ -1,9 +1,9 @@
-;Name;Rune Cost;Effect (string);Effect (json path);Class;Illustration;CollectionID;
-;Alfheim;4;« Une fois par tour, vous gagnez 5 d’armure »;alfheim.json;common;building_image_exemple1.png;101;
-;Asgaro;4;« Une fois par tour, piochez deux carte » ;asgaro.json;common;building_image_exemple2.png;102;
-;Jotunheim;3;« Une fois par tour, infligez 3 dégâts » ;jotunheim.json;common;building_image_exemple3.png;103;
-;Miogaro;5;« Une fois par tour, vous pouvez échanger deux permanents cibles sur le champ de bataille » ;miogaro.json;common;building_image_exemple4.png;104;
-;Muspellheim;6;« Une fois par tour, vous pouvez gagnez 3 runes » ;muspellheim.json;common;building_image_exemple5.png;105;
-;Nidavellir;3;« Une fois par tour, vous pouvez mettre -1/-1 a une créature ciblee» ;nidavellir.json;common;building_image_exemple6.png;106;
-;Niflheim;4;« Une fois par tour,  détruisez la créature ciblée» ;niflheim.json;common;building_image_exemple7.png;107;
-;Val’alla;8;« Une fois par tour, piochez 8 cartes, vous gagnez 8 d’armure, vous gagnez 8 runes. » ;valalla.json;common;building_image_exemple8.png;108;
+;Name;Rune Cost;Life;Effect (string);Effect (json path);Class;Illustration;CollectionID;
+;Alfheim;4;10;« Au début de votre tour, vous gagnez 5 d’armure »;alfheim.json;common;building_image_exemple1.png;101;
+;Asgaro;4;10;« Au début de votre tour, piochez deux carte » ;asgaro.json;common;building_image_exemple2.png;102;
+;Jotunheim;3;101;« Au début de votre tour, infligez 3 dégâts »;jotunheim.json;common;building_image_exemple3.png;103;
+;Miogaro;5;1;« Au début de votre tour, vous pouvez échanger deux permanents cibles sur le champ de bataille » ;miogaro.json;common;building_image_exemple4.png;104;
+;Muspellheim;6;1;« Au début de votre tour, vous pouvez gagnez 3 runes »;muspellheim.json;common;building_image_exemple5.png;105;
+;Nidavellir;3;1;« Au début de votre tour, vous pouvez mettre -1/-1 a une créature ciblée»;nidavellir.json;common;building_image_exemple6.png;106;
+;Niflheim;7;110;« Au début de votre tour,  détruisez la créature ciblée» ;niflheim.json;common;building_image_exemple7.png;107;
+;Val’alla;8;88888888;« Au début de votre tour, piochez 8 cartes, vous gagnez 8 d’armure, vous gagnez 8 runes. »;valalla.json;common;building_image_exemple8.png;108;

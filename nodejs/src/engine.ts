@@ -15,8 +15,11 @@ export function playerDraw(player: Hero, n: number): boolean {
 export function startTurn(game: Game): void {
     for (const player of game.players) {
         player.curRunes = fibonacci(game.turnNumber);
-        resolveEffect(player, player.passive, player);
         playerDraw(player, 8 - player.hand.length);
+        resolveEffect(player, player.passive, player);
+        resolveBuildings(game);
+        checkBoardState(game);
+
     }
 }
 

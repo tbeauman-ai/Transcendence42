@@ -62,8 +62,6 @@ function resolveRound(session: GameSession): void {
     }
 
     checkBoardState(session.game);
-    resolveBuildings(session.game);
-    checkBoardState(session.game);
     resolveCombat(session.game);
     checkBoardState(session.game);
 
@@ -92,7 +90,7 @@ function buildHero(heroId: string): Hero {
         kind: "hero",
         idInGame: Math.floor(Math.random() * 100000),
         class: "Warrior",
-        passive: { effect: "armor", value: 1, target: "self_hero" },
+        passive: { effect: "armor", value: 1, target: "self_hero", targetType: "hero" },
         armor: 0,
         dmgDealt: 0,
         curRunes: 0,

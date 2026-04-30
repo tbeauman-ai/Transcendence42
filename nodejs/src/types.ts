@@ -51,7 +51,10 @@ export type EffectTarget =
 | "all_allies"
 | "all_enemies";
 
-export type TargetType = CardType | Hero;
+export type TargetType = 
+| "creature"
+| "building"
+| "hero";
 
 export type Effect = {
     effect: EffectType;
