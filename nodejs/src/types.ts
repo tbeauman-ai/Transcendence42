@@ -1,10 +1,15 @@
-type CardType = "creature" | "sortilege" | "building";
+export type CardType = "creature" | "sortilege" | "building";
 
-type CreatureState = "sick" | "ready";
+export type CreatureState = "sick" | "ready";
 
-type CardClass = "common" | "Warrior" | "Druid";
+export type CardClass = "common" | "Warrior" | "Druid";
 
-type    Zone = 
+export type WaitingPlayer = {
+    socket: any;
+    playerData: any;
+}
+
+export type Zone = 
 | "bf1"
 | "bf2"
 | "bf3"
@@ -17,7 +22,17 @@ type    Zone =
 | "library"
 | "graveyard";
 
-type EffectType = 
+export type BfZone = 
+| "bf1"
+| "bf2"
+| "bf3"
+| "bf4"
+| "bf5"
+| "bf6"
+| "bf7"
+| "bf8";
+
+export type EffectType = 
 | "ad_mod" 
 | "def_mod" 
 | "draw" 
@@ -27,7 +42,7 @@ type EffectType =
 | "swap" 
 | "destroy";
 
-type EffectTarget = 
+export type EffectTarget = 
 | "self_hero"       
 | "opponent_hero"  
 | "self"          
@@ -36,19 +51,13 @@ type EffectTarget =
 | "all_allies"
 | "all_enemies";
 
-type Effect = {
-    /* A changer, quand on definit une carte on veut pas mettre les cibles dans les effets, ca se fait a la resolution
-    affectedCards: Card[];
-    swapa: Card;
-    swapb: Card;
-    */
-
+export type Effect = {
     effect: EffectType;
     value: number;
     target: EffectTarget;
 }
 
-type Card = {
+export type Card = {
     kind: "card";
     zone: Zone;
     effects: Effect[];
@@ -64,28 +73,29 @@ type Card = {
     baseEndurance: number;
     currEndurance: number;
     cardName: string;
-    fullPicPath: string; // la carte qu'on voit dans la collection ou dans la main
-    smallPicPath: string; // la miniature sur le board
-    cardBackPath: string; // la sleeve
+    fullPicPath: string;
+    smallPicPath: string;
+    cardBackPath: string;
 };
 
-type Hero = {
+export type Hero = {
     kind: "hero";
+    idInGame: number;
     class: CardClass;
     passive: Effect;
     armor: number;
     dmgDealt: number;
     curRunes: number;
-    battlefield: Partial<Record<Zone, Card>>;
+    battlefield: Partial<Record<BfZone, Card>>;
     library: Card[];
     graveyard: Card[];
     hand: Card[];
     heroPicPath: string;
 };
 
-type GamePhase = "beginning" | "main" | "resolve" 
+export type GamePhase = "beginning" | "main" | "resolve";
 
-type Game = {
+export type Game = {
     kind: "game";
     phase: GamePhase;
     turnNumber: number;
@@ -93,3 +103,11 @@ type Game = {
     players: Hero[];
     backgroundPath: string;
 };
+
+export type GameSession = {
+    game: Game;
+    sockets: any[];
+    submittedCards: Map<string, any[]>; // socketId : cartes jouées
+    timer: ReturnType<typeof setTimeout> | null;
+    readyPlayers: Set<string>;  // les socketIds des joueurs qui ont cliqué fin de tour
+}

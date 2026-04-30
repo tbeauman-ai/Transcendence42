@@ -1,31 +1,33 @@
-function fibonacci(n: number): number {
+import type { Hero, Card, Game, Zone, Effect, BfZone } from './types.ts'
+export function fibonacci(n: number): number {
     if (n === 0 || n === 1)
         return 1;
     return fibonacci(n - 1) + fibonacci(n - 2)
 }
 
-function playerDraw(player: Hero, n: number): boolean {
+export function playerDraw(player: Hero, n: number): boolean {
     while (player.library.length > 0 && n--)
         player.hand.push(player.library.pop()!);
     if (player.library.length === 0)
         return (false);
     return (true);
 }
-
-function startTurn(player: Hero, game: Game): void {
-    player.curRunes = fibonacci(game.turnNumber);
-    resolveEffect(player, player.passive, player); // fonction a definir
-    playerDraw(player, 8 - player.hand.length)
+export function startTurn(game: Game): void {
+    for (const player of game.players) {
+        player.curRunes = fibonacci(game.turnNumber);
+        resolveEffect(player, player.passive, player);
+        playerDraw(player, 8 - player.hand.length);
+    }
 }
 
-function playCard(card: Card, zone?: Zone, target?: Hero | Card, target2?: Card) {
+export function playCard(card: Card, zone?: Zone, target?: Hero | Card, target2?: Card) {
     card.owner.hand = card.owner.hand.filter(c => c.idInGame !== card.idInGame);
     if (card.type == "building" || card.type == "creature")
     {
-        if (zone)
+        if (zone && zone.startsWith("bf"))
         {
             card.zone = zone;
-            card.owner.battlefield[zone!] = card;
+            card.owner.battlefield[zone as BfZone] = card;
         }
     }
     for (const effect of card.effects) {
@@ -37,7 +39,7 @@ function playCard(card: Card, zone?: Zone, target?: Hero | Card, target2?: Card)
     }
 }
 // p1 deals to p2
-function dealsDmg(player1: Hero, player2: Hero, x: number): void
+export function dealsDmg(player1: Hero, player2: Hero, x: number): void
 {
     if (x - player2.armor > 0)
     {
@@ -51,10 +53,10 @@ function dealsDmg(player1: Hero, player2: Hero, x: number): void
 
 }
 
-function resolveCombat(game: Game) {
+export function resolveCombat(game: Game) {
     for (let i = 1; i <= 8 ; i++) {
-        const zone = `bf${i}` as Zone;
-        const card0 = player.battlefield[zone];
+        const zone = `bf${i}` as BfZone;
+        const card0 = game.players[0].battlefield[zone];
         const card1 = game.players[1].battlefield[zone];
         if (card0 === undefined) {
             if (card1 === undefined)
@@ -87,10 +89,10 @@ function resolveCombat(game: Game) {
     }
 }
 
-function resolveBuildings(game:Game) {
+export function resolveBuildings(game:Game) {
     for (let i = 1 ; i <= 8; i++)
     {
-        const zone = `bf${i}` as Zone;
+        const zone = `bf${i}` as BfZone;
         for (const player of game.players)
             {
             const card0 = player.battlefield[zone];
@@ -103,7 +105,7 @@ function resolveBuildings(game:Game) {
                         case "opponent_hero":
                             for (const oppo of game.players)
                             {
-                                if (oppo === player)
+                                if (oppo !== player)
                                     resolveEffect(player, effect, oppo);
                             }
                             break;  
@@ -113,7 +115,7 @@ function resolveBuildings(game:Game) {
                         case "left_neighbor":
                             if (i === 1)
                                 break;
-                            const zoneLeftTarget = `bf${i - 1}` as Zone;
+                            const zoneLeftTarget = `bf${i - 1}` as BfZone;
                             const leftTarget = player.battlefield[zoneLeftTarget];
                             if (leftTarget)
                                 resolveEffect(player, effect, leftTarget);
@@ -121,7 +123,7 @@ function resolveBuildings(game:Game) {
                         case "right_neighbor":
                             if (i === 8)
                                 break;
-                            const zoneRightTarget = `bf${i + 1}` as Zone;
+                            const zoneRightTarget = `bf${i + 1}` as BfZone;
                             const rightTarget = player.battlefield[zoneRightTarget];
                             if (rightTarget)
                                 resolveEffect(player, effect, rightTarget);
@@ -131,7 +133,7 @@ function resolveBuildings(game:Game) {
                             {
                                 if (j === i)
                                     continue;
-                                const nezo = `bf${i}` as Zone;
+                                const nezo = `bf${j}` as BfZone;
                                 const ally = player.battlefield[nezo];
                                 if (ally)
                                     resolveEffect(player, effect, ally);
@@ -140,11 +142,11 @@ function resolveBuildings(game:Game) {
                         case "all_enemies":
                             for (let j = 1 ; j <= 8; j++)
                             {
-                                const enemyzone = `bf${i}` as Zone;
+                                const enemyBf = `bf${i}` as BfZone;
                                 for (const oppo of game.players){
                                     if (oppo === player)
                                         continue;
-                                    const enemy = oppo.battlefield[enemyzone];
+                                    const enemy = oppo.battlefield[enemyBf];
                                     if (enemy)
                                         resolveEffect(oppo, effect, enemy);
 
@@ -159,7 +161,7 @@ function resolveBuildings(game:Game) {
         }
 }
 
-function resolveEffect(player: Hero, eff: Effect, target: Hero | Card, target2?: Card): boolean { //succes or failure
+export function resolveEffect(player: Hero, eff: Effect, target: Hero | Card, target2?: Card): boolean { //succes or failure
     switch (eff.effect) {
         case "ad_mod":
             if (target.kind === "hero")
@@ -215,7 +217,7 @@ function resolveEffect(player: Hero, eff: Effect, target: Hero | Card, target2?:
     return true;
 }
 
-function checkVictory(game: Game) {
+export function checkVictory(game: Game) {
     let max = 0;
     let draw = false;
     for (const player of game.players) {
@@ -241,9 +243,9 @@ function checkVictory(game: Game) {
     }
 }
 
-function    checkBoardState(game: Game) {
+export function    checkBoardState(game: Game) {
     for (let i = 1 ; i<= 8 ; i++) {
-        const zone = `bf${i}` as Zone;
+        const zone = `bf${i}` as BfZone;
         for (const player of game.players) {
             const card = player.battlefield[zone];
             if (card && card.type == "creature" && card.currEndurance <= 0) {
