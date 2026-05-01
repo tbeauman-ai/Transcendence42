@@ -65,6 +65,7 @@ function resolveRound(session: GameSession): void {
     if (session.game.turnNumber > 8) {
         checkVictory(session.game)
         session.sockets.forEach(s => s.emit('game_over', { game: session.game }))
+        // LOAD LA GAME DANS LA DB OKLM
     } else {
         startTurn(session.game)
         session.timer = setTimeout(() => resolveRound(session), session.game.clock_per_turn * 1000)

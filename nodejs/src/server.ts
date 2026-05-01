@@ -6,7 +6,6 @@ import { initSocket } from './socket/game.ts'
 import cardsRouter from './routes/cards.ts'
 import heroesRouter from './routes/heroes.ts'
 import authRouter from './routes/auth.ts'
-import { authMiddleware } from './routes/auth.ts'
 
 
 const app = express()
@@ -25,7 +24,7 @@ app.use(express.json())
 app.use('/cards', cardsRouter)
 app.use('/heroes', heroesRouter)
 app.use('/auth', authRouter)
-app.get('/users', authMiddleware, async (req, res) => {
+app.get('/users', async (req, res) => {
     const [rows] = await connection.query('SELECT id, username, created_at FROM users')
     res.json(rows)
 })

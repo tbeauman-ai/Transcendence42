@@ -159,7 +159,6 @@ export function resolveBuildings(game:Game) {
                                     const enemy = oppo.battlefield[enemyBf];
                                     if (enemy)
                                         resolveEffect(oppo, effect, { cardId: building.idInGame, target: enemy });
-
                                 }
                             }
                             break;
@@ -167,8 +166,7 @@ export function resolveBuildings(game:Game) {
                 }
             }
         }
-
-        }
+    }
 }
 
 export function resolveEffect(
@@ -259,7 +257,7 @@ export function checkVictory(game: Game) {
     }
 }
 
-export function    checkBoardState(game: Game) {
+export function checkBoardState(game: Game) {
     for (let i = 1 ; i<= 8 ; i++) {
         const zone = `bf${i}` as BfZone;
         for (const player of game.players) {
