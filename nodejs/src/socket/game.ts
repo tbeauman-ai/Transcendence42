@@ -1,13 +1,12 @@
 import { Server, Socket } from 'socket.io'
-import type { Game, Hero, Card, GameSession, WaitingPlayer, BfZone } from '../types.ts'
-import { startTurn, checkVictory, resolveCombat, resolveBuildings, checkBoardState, playCard } from '../engine.ts'
+import type { Hero } from '../types/hero.ts'
+import type { Card } from '../types/card.ts'
+import type { Game } from '../types/gamesession.ts'
+import type { BfZone } from '../types/zones.ts'
+import type { GameSession, WaitingPlayer } from '../types/gamesession.ts'
+import { startTurn, checkVictory, resolveCombat, resolveBuildings, checkBoardState, playCard, resolveEffect } from '../engine/engine.ts'
 
-const waitingPlayers: Record<number, WaitingPlayer[]> = {
-    2: [],
-    3: [],
-    4: []
-}
-
+let waitingPlayers: WaitingPlayer[] = [];
 let sessions: GameSession[] = []
 
 function findById(game: Game, id: number): Hero | Card | undefined {
@@ -46,12 +45,15 @@ function resolveRound(session: GameSession): void {
                 ? findById(session.game, action.target2Id) as Card
                 : undefined
 
-            playCard(card, zone, target, target2)
+            const enrichedPayload = {
+                ...action,
+                target: target,
+                target2: target2
+            }
+            playCard(card, enrichedPayload);
         }
     }
 
-    checkBoardState(session.game)
-    resolveBuildings(session.game)
     checkBoardState(session.game)
     resolveCombat(session.game)
     checkBoardState(session.game)
@@ -109,13 +111,14 @@ export function initSocket(io: Server): void {
     io.on('connection', (socket: Socket) => {
         console.log('Joueur connecté :', socket.id)
 
+        // Il manque un token de room ou quoi
         socket.on('join_game', (data) => {
-            waitingPlayers[data.mode].push({
+            waitingPlayers.push({
                 socket: socket,
                 playerData: data
             })
-            if (waitingPlayers[data.mode].length === data.mode) {
-                const players = waitingPlayers[data.mode]
+            if (waitingPlayers.length === 2) {
+                const players = waitingPlayers
                 const newSession: GameSession = {
                     game: instantiateGame(players),
                     sockets: players.map(p => p.socket),
@@ -124,7 +127,7 @@ export function initSocket(io: Server): void {
                     timer: null
                 }
                 sessions.push(newSession)
-                waitingPlayers[data.mode] = []
+                waitingPlayers = []
                 launchGame(newSession)
             }
         })
@@ -134,10 +137,36 @@ export function initSocket(io: Server): void {
                 s.sockets.some(sock => sock.id === socket.id)
             )
             if (!session) return
+            
+            const playerIndex = session.sockets.findIndex(s => s.id === socket.id);
+            const player = session.game.players[playerIndex];
+            const card = player.hand.find(c => c.idInGame === data.cardId);
 
-            const existing = session.submittedCards.get(socket.id) ?? []
-            existing.push(data)
-            session.submittedCards.set(socket.id, existing)
+            if (!card) return;
+
+            if (card.timing === "immediate")
+            {
+                // 1. On cherche la cible réelle dans la game
+                const target = findById(session.game, data.targetId);
+                const target2 = findById(session.game, data.target2Id);
+
+                // 2. On crée un payload "enrichi" qui contient les vrais objets
+                const fullPayload = {
+                    ...data,
+                    target: target,   // C'est maintenant un objet Hero ou Card
+                    target2: target2
+                };
+                playCard(card, fullPayload);
+                session.sockets.forEach((s, id) => {
+                    const perspective = getPlayerPerspective(session.game, id);
+                    s.emit('game_update', { game: perspective });
+                });
+            }
+            else {
+                const existing = session.submittedCards.get(socket.id) ?? [];
+                existing.push(data);
+                session.submittedCards.set(socket.id, existing);
+            }
         })
 
         socket.on('end_turn', () => {
@@ -156,4 +185,15 @@ export function initSocket(io: Server): void {
             console.log('Joueur déconnecté :', socket.id)
         })
     })
+}
+
+function getPlayerPerspective(game: Game, playerIndex: number) {
+    const copy = JSON.parse(JSON.stringify(game));
+    copy.players.forEach((hero: any, index: number) => {
+        if (index !== playerIndex) {
+            hero.hand = hero.hand.map(() => ({ idInGame: -1, hidden: true }))
+            hero.library = [];
+        }
+    });
+    return copy;
 }

@@ -1,4 +1,9 @@
-import type { Hero, Card, Game, Zone, Effect, BfZone } from './types.ts'
+import type { Hero } from '../types/hero.ts'
+import type { Card, PlayCardPayload } from '../types/card.ts'
+import type { Game } from '../types/gamesession.ts'
+import type { Zone, BfZone } from '../types/zones.ts'
+import type { Effect } from '../types/effects.ts'
+
 export function fibonacci(n: number): number {
     if (n === 0 || n === 1)
         return 1;
@@ -12,6 +17,7 @@ export function playerDraw(player: Hero, n: number): boolean {
         return (false);
     return (true);
 }
+
 export function startTurn(game: Game): void {
     for (const player of game.players) {
         player.curRunes = fibonacci(game.turnNumber);
@@ -23,22 +29,24 @@ export function startTurn(game: Game): void {
     }
 }
 
-export function playCard(card: Card, zone?: Zone, target?: Hero | Card, target2?: Card) {
+export function playCard(card: Card, payload: PlayCardPayload) {
+
     card.owner.hand = card.owner.hand.filter(c => c.idInGame !== card.idInGame);
+
+    
     if (card.type == "building" || card.type == "creature")
     {
-        if (zone && zone.startsWith("bf"))
+        if (payload.zone && payload.zone.startsWith("bf"))
         {
-            card.zone = zone;
-            card.owner.battlefield[zone as BfZone] = card;
+            card.zone = payload.zone;
+            card.owner.battlefield[payload.zone as BfZone] = card;
         }
     }
+
+
     for (const effect of card.effects) {
-        if (effect.effect === "swap" && target){
-            resolveEffect(card.owner, effect, target, target2);
-        }
-        else if (target)
-            resolveEffect(card.owner, effect, target);
+        if (!resolveEffect(card.owner, effect, payload))
+            console.log("Resolve effect failed", { cardId: card.idInGame, effect: effect.effect, payload });
     }
 }
 // p1 deals to p2
@@ -164,56 +172,68 @@ export function resolveBuildings(game:Game) {
         }
 }
 
-export function resolveEffect(player: Hero, eff: Effect, target: Hero | Card, target2?: Card): boolean { //succes or failure
+export function resolveEffect(
+    player: Hero,
+    eff: Effect,
+    payload: PlayCardPayload): boolean { //succes or failure
+    if (!payload.target)
+        return false
     switch (eff.effect) {
         case "ad_mod":
-            if (target.kind === "hero")
+            if (payload.target.kind === "hero")
                 return false;
-            target.currForce += eff.value;
+            payload.target.currForce += eff.value;
             break;
         case "def_mod":
-            if (target.kind === "hero")
+            if (payload.target.kind === "hero")
                 return false;
-            target.currEndurance += eff.value;
+            payload.target.currEndurance += eff.value;
             break;
         case "draw":
-            if (target.kind === "card")
+            if (payload.target.kind === "card")
                 return false;
-            playerDraw(target, eff.value);
+            playerDraw(payload.target, eff.value);
             break;
         case "dmg":
-            if (target.kind === "hero")
-                dealsDmg(player, target, eff.value);
-            if (target.kind === "card")
+            if (payload.target.kind === "hero")
+                dealsDmg(player, payload.target, eff.value);
+            if (payload.target.kind === "card")
             {
-                target.currEndurance -= eff.value;
-                if (target.currEndurance < 0)
+                payload.target.currEndurance -= eff.value;
+                if (payload.target.currEndurance < 0)
                 {
-                    target.zone = "graveyard"
+                    payload.target.zone = "graveyard"
                 }
             }
             break;
         case "armor":
-            if (target.kind === "card")
+            if (payload.target.kind === "card")
                 return false;
-            target.armor += eff.value;
+            payload.target.armor += eff.value;
             break;
         case "runes":
-            if (target.kind === "card")
+            if (payload.target.kind === "card")
                 return false;
-            target.curRunes += eff.value;
+            payload.target.curRunes += eff.value;
             break;
         case "swap":
-            if (target.kind === "hero" || target2 === undefined)
+            if (!payload.target2)
                 return false;
-            const tmp = target.zone;
-            target.zone = target2.zone;
-            target2.zone = tmp;
+            if (payload.target.kind === "hero" || payload.target2 === undefined)
+                return false;
+            const tmp = payload.target.zone;
+            payload.target.zone = payload.target2.zone;
+            payload.target2.zone = tmp;
             break;
         case "destroy":
-            if (target.kind === "hero")
+            if (payload.target.kind === "hero")
                 return false;
-            target.currEndurance = 0;
+            payload.target.currEndurance = 0;
+            break;
+        case "freeze":
+            if (payload.target.kind === "hero")
+                return false;
+            payload.target.state = "sick";
             break;
     }
 
